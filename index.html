@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>开机动画 | 完整光影 + 金色径向脉冲 + 下滑至全屏内容</title>
+    <title>老飞宇66678</title>
     <style>
         * {
             margin: 0;
@@ -14,10 +14,10 @@
         body {
             background: #0a0c12;
             overflow-x: hidden;
+            font-family: system-ui, -apple-system, 'Segoe UI', 'Poppins', 'Roboto', sans-serif;
         }
 
-        /* 第一阶段全屏容器 */
-        。phase1 {
+        .phase1 {
             position: fixed;
             top: 0;
             left: 0;
@@ -31,10 +31,9 @@
             transition: opacity 0.5s ease, visibility 0.5s;
         }
 
-        /* 文字容器 */
-        。text-wrapper {
+        .text-wrapper {
             position: relative;
-            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+            font-family: inherit;
             font-weight: 800;
             font-size: clamp(2.5rem, 10vw, 5.5rem);
             letter-spacing: 0.05em;
@@ -43,7 +42,6 @@
             white-space: nowrap;
         }
 
-        /* 光影层（唯一显示文字的地方） */
         .light-text {
             position: relative;
             display: inline-block;
@@ -53,9 +51,11 @@
             -webkit-background-clip: text;
             color: transparent;
             clip-path: circle(0% at 0% 50%);
+            will-change: transform, clip-path;
+            transform: translateZ(0);
+            backface-visibility: hidden;
         }
 
-        /* 渐变流动 */
         .gradient-flow {
             animation: gradientMove 3s ease infinite alternate;
         }
@@ -64,7 +64,6 @@
             100% { background-position: 200% 0%; }
         }
 
-        /* 水平扫描动画（半径90px） */
         .scan-lr {
             animation: scanLeftRight 3.2s ease-in-out forwards;
         }
@@ -81,12 +80,10 @@
             100% { clip-path: circle(90px at -5% 50%); }
         }
 
-        /* 全显 */
         .light-text.full {
             clip-path: none !important;
         }
 
-        /* 辅助光条 */
         .light-bar {
             position: absolute;
             top: 0;
@@ -99,6 +96,8 @@
             pointer-events: none;
             mix-blend-mode: overlay;
             z-index: 2;
+            will-change: left, opacity;
+            transform: translateZ(0);
         }
         .light-bar.sync-lr {
             animation: barLR 3.2s ease-in-out forwards;
@@ -117,7 +116,6 @@
             100% { left: -100%; opacity: 0; }
         }
 
-        /* 字母拆分容器（用于提取动画） */
         .letters-box {
             position: absolute;
             top: 0;
@@ -130,6 +128,8 @@
             pointer-events: none;
             z-index: 1;
             opacity: 0;
+            will-change: opacity;
+            transform: translateZ(0);
         }
         .letter {
             display: inline-block;
@@ -152,7 +152,6 @@
             100% { text-shadow: 0 0 0 transparent; transform: scale(1); }
         }
 
-        /* 第二阶段容器（开屏动画） */
         .phase2 {
             position: fixed;
             top: 0;
@@ -167,9 +166,11 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.4s ease, transform 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            will-change: transform, opacity;
+            transform: translateZ(0);
         }
         .radial-text {
-            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+            font-family: inherit;
             font-weight: 800;
             font-size: clamp(2.5rem, 10vw, 5.5rem);
             background: linear-gradient(135deg, #FBBF24, #F59E0B, #D97706);
@@ -178,6 +179,9 @@
             -webkit-background-clip: text;
             color: transparent;
             clip-path: circle(0% at center);
+            will-change: transform, clip-path;
+            transform: translateZ(0);
+            backface-visibility: hidden;
         }
         .radial-pulse {
             animation: radialExpand 2.2s cubic-bezier(0.2, 0.9, 0.4, 1.2) forwards;
@@ -200,109 +204,389 @@
             pointer-events: none;
             z-index: -1;
             animation: glowExpand 2.2s ease-out forwards;
+            will-change: width, height, opacity;
+            transform: translateZ(0);
         }
         @keyframes glowExpand {
             0% { width: 0%; height: 0%; opacity: 0.8; }
             100% { width: 280%; height: 280%; opacity: 0; }
         }
 
-        /* 下滑移出屏幕 */
         .phase2.slide-out {
             transform: translateY(100vh);
             opacity: 0;
         }
 
-        /* 新内容全屏页面（初始隐藏） */
-        .content-page {
+        .main-content {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(145deg, #1a1f2e, #0f111a);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            background: #ffffff;
+            color: #1e1f2c;
             z-index: 300;
+            overflow-y: auto;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.6s ease;
-            color: white;
-            text-align: center;
-            padding: 2rem;
+            font-family: system-ui, -apple-system, 'Segoe UI', 'Poppins', 'Roboto', sans-serif;
+            line-height: 1.5;
         }
-        .content-page.show {
+        .main-content.show {
             opacity: 1;
             visibility: visible;
         }
-        .content-page h1 {
-            font-size: 3rem;
-            background: linear-gradient(135deg, #FBBF24, #FF6B6B);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            margin-bottom: 1rem;
+
+        .main-content::-webkit-scrollbar {
+            width: 8px;
         }
-        .content-page p {
-            font-size: 1.2rem;
-            max-width: 600px;
-            margin-bottom: 2rem;
-            opacity: 0.8;
+        .main-content::-webkit-scrollbar-track {
+            background: #f0f0f0;
         }
-        .card-grid {
+        .main-content::-webkit-scrollbar-thumb {
+            background: #ff7b2c;
+            border-radius: 10px;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(50px);
+            -webkit-backdrop-filter: blur(50px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 16px 0;
+        }
+        .nav-inner {
             display: flex;
-            gap: 1.5rem;
+            align-items: center;
+            justify-content: space-between;
             flex-wrap: wrap;
-            justify-content: center;
-            margin-top: 2rem;
+            gap: 16px;
+        }
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ff7b2c, #ffb347);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+        }
+        .logo span {
+            font-size: 0.9rem;
+            background: none;
+            -webkit-background-clip: unset;
+            background-clip: unset;
+            color: #ff7b2c;
+            font-weight: 500;
+        }
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            flex-wrap: wrap;
+        }
+        .nav-links a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.2s;
+            font-size: 0.95rem;
+        }
+        .nav-links a:hover {
+            color: #ff7b2c;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(95deg, #ff7b2c, #ff9f4a);
+            border: none;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-weight: 700;
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 12px rgba(255, 123, 44, 0.3);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #ff7b2c;
+            color: #ff7b2c;
+            box-shadow: none;
+        }
+        .btn-outline:hover {
+            background: #ff7b2c10;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 123, 44, 0.4);
+        }
+
+        section {
+            padding: 70px 0;
+            border-bottom: 1px solid #eaeef2;
+        }
+        .section-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 32px;
+            letter-spacing: -0.3px;
+            background: linear-gradient(135deg, #ff7b2c, #ffb347);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+        }
+        .badge {
+            background: #fef3e8;
+            border-left: 3px solid #ff7b2c;
+            padding: 12px 20px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            margin-bottom: 24px;
+            color: #2c3e50;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 28px;
         }
         .card {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 24px;
-            padding: 1.5rem;
-            width: 200px;
-            transition: 0.2s;
+            background: #f9f9fc;
+            border-radius: 28px;
+            padding: 24px;
+            border: 1px solid #e2e8f0;
+            transition: 0.25s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
-        .card h3 { margin-bottom: 0.5rem; color: #FBBF24; }
+        .card:hover {
+            border-color: #ff7b2c80;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.05);
+        }
+        .price-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        .price-table th, .price-table td {
+            padding: 14px 8px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .price-table th {
+            color: #ff7b2c;
+            font-weight: 700;
+        }
+        .highlight {
+            color: #ff7b2c;
+            font-weight: 700;
+        }
+        .tech-item {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 16px;
+            border: 1px solid #eef2f6;
+            margin-bottom: 12px;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .rule-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        .rule-list li {
+            margin-bottom: 12px;
+            padding-left: 24px;
+            position: relative;
+            color: #2c3e50;
+        }
+        .rule-list li::before {
+            content: "▹";
+            position: absolute;
+            left: 0;
+            color: #ff7b2c;
+        }
+        footer {
+            padding: 40px 0;
+            text-align: center;
+            color: #6c7a8e;
+            font-size: 0.8rem;
+            border-top: 1px solid #eaeef2;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 16px;
+            }
+            .section-title {
+                font-size: 1.8rem;
+            }
+            .nav-inner {
+                flex-direction: column;
+            }
+            .price-table th, .price-table td {
+                font-size: 0.8rem;
+                padding: 10px 4px;
+            }
+        }
+        .orange-link {
+            color: #ff7b2c;
+            text-decoration: none;
+        }
+
         .info {
             position: absolute;
             bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
             font-size: 12px;
-            color: rgba(255,255,255,0.3);
+            color: rgba(255,255,255,0.5);
             font-family: monospace;
         }
     </style>
 </head>
 <body>
 
-<!-- 第一阶段 -->
 <div class="phase1" id="phase1">
     <div class="text-wrapper">
         <div class="light-text gradient-flow" id="lightText">Lead Focus Yield club</div>
         <div class="letters-box" id="lettersBox"></div>
     </div>
     <div class="light-bar" id="lightBar"></div>
-    <div class="info">✨ 水平光影 · 暖色流动 · 丝滑提取 LFY club ✨</div>
 </div>
 
-<!-- 第二阶段（开屏动画） -->
 <div class="phase2" id="phase2">
     <div class="radial-text" id="radialText">LFY club</div>
     <div class="radial-glow" id="radialGlow"></div>
 </div>
 
-<!-- 新内容全屏页面（下滑后显示） -->
-<div class="content-page" id="contentPage">
-    <h1>✨ 欢迎来到 LFY Club ✨</h1>
-    <p>这里是您专属的空间，开屏动画已完美结束。您可以在此放置任何内容。</p>
-    <div class="card-grid">
-        <div class="card"><h3>🌟 特色一</h3><p>光影流动</p></div>
-        <div class="card"><h3>🎨 特色二</h3><p>丝滑提取</p></div>
-        <div class="card"><h3>⚡ 特色三</h3><p>径向脉冲</p></div>
-    </div>
-    <div class="info">✨ 下拉完成 · 内容展示区 ✨</div>
+<div class="main-content" id="clubContent">
+    <nav class="navbar">
+        <div class="container nav-inner">
+            <div class="logo">老飞宇俱乐部 <span> LFY Club </span></div>
+            <div class="nav-links">
+                <a href="#price">陪玩价格</a>
+                <a href="#duo">技术双陪</a>
+                <a href="#convoy">护航套餐</a>
+                <a href="#rules">规则售后</a>
+                <a href="#about">关于</a>
+            </div>
+            <a href="#" class="btn" style="background:#ff7b2c; color:#fff;">下单功能尚未开放 </a>
+        </div>
+    </nav>
+    <main>
+        <section style="padding: 60px 0 40px 0; border-bottom: none;">
+            <div class="container">
+                <div style="max-width: 900px; margin: 0 auto; text-align: center;">
+                    <div class="badge" style="width: fit-content; margin: 0 auto 32px auto; text-align: center;">超超超性价比 · 日均护航200+局</div>
+                    <h1 style="font-size: 3rem; font-weight: 800; margin-bottom: 20px; color: #1e1f2c;">顶尖战神陪玩</h1>
+                    <p style="font-size: 3.5rem; color: #ff7b2c; margin-bottom: 20px;">技术未达标 · 官方售后</p>
+                    <p style="font-size: 1.1rem; color: #4a5568; margin-bottom: 12px;">娱乐女陪 | Top枪男 | 巅峰战神 | 明星职业级</p>
+                    <p style="font-size: 1.1rem; color: #4a5568; margin-bottom: 40px;">硬核保底物资，搬离率+击杀双重考核，护航最高2988w保底。</p>
+                    <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+                        <a href="#price" class="btn">查看完整价格表</a>
+                        <a href="#convoy" class="btn btn-outline">护航套餐 + 每日首单额外保底</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="price">
+            <div class="container">
+                <h2 class="section-title">战神陪玩价目表</h2>
+                <div class="grid-2" style="margin-bottom: 32px;">
+                    <div class="card">
+                        <h3 style="margin-bottom: 20px; font-size: 1.5rem; color:#2c3e50;">单人陪玩 / 娱乐陪</h3>
+                        <table class="price-table">
+                            <thead><tr><th>类型</th><th>价格 (元/小时)</th><th>单陪技术参考*</th></tr></thead>
+                            <tbody>
+                                <tr><td>娱乐女陪</td><td>70-90</td><td>不保击杀/不售后</td></tr>
+                                <tr><td>Top枪男/女</td><td>100</td><td>击杀≥4个 (参考不售后)</td></tr>
+                                <tr><td>巅峰Top枪男/女</td><td>110</td><td>击杀≥6个 (参考不售后)</td></tr>
+                                <tr><td>战神</td><td>130</td><td>击杀≥8个 (参考不售后)</td></tr>
+                                <tr><td>明星战神</td><td>180</td><td>击杀≥10个 (参考不售后)</td></tr>
+                                <tr><td>明星职业战神</td><td>200</td><td>击杀≥12个 (参考不售后)</td></tr>
+                            </tbody>
+                        </table>
+                        <div class="badge" style="margin-top: 16px; font-size: 0.75rem;">※ 娱乐女单/单陪/1陪2均不承诺包藏或保底击杀达标，不接受技术售后。每小时击杀参考值展示游戏水平，不作为售后依据。</div>
+                    </div>
+                    <div class="card">
+                        <h3 style="margin-bottom: 20px; font-size: 1.5rem; color:#2c3e50;">双陪 · 技术保底标准</h3>
+                        <div class="tech-item"><div class="flex-between"><strong>Top双陪</strong><span class="highlight">双人单价合计</span></div><div>击杀≥6个 &nbsp;|&nbsp; 搬离率≥40% &nbsp;|&nbsp; 保底400万</div></div>
+                        <div class="tech-item"><div class="flex-between"><strong>巅峰Top双陪</strong></div><div>击杀≥8个 &nbsp;|&nbsp; 搬离率≥45% &nbsp;|&nbsp; 保底600万</div></div>
+                        <div class="tech-item"><div class="flex-between"><strong>战神双陪</strong></div><div>击杀≥10个 &nbsp;|&nbsp; 搬离率≥50% &nbsp;|&nbsp; 保底800万</div></div>
+                        <p style="margin-top: 16px; font-size: 0.8rem; color:#ff7b2c;">任一项未达标 → 享受技术售后（按双陪考核标准）<br>双陪需下单2位陪玩，价格按所选等级双人单价累计。</p>
+                    </div>
+                </div>
+                <div class="badge" style="background:#fef3e8;">附加收费说明：包钥匙卡 +30元/小时 | 包6套装备 +15元/套 | 1陪2模式 单价+20元/小时。超时计费：超15分钟按0.5小时，超45分钟按1小时。</div>
+            </div>
+        </section>
+
+        <section id="duo">
+            <div class="container">
+                <h2 class="section-title">技术双陪 · 硬核考核</h2>
+                <div class="card" style="background:#f9f9fc; border:1px solid #e2e8f0;">
+                    <div class="grid-2" style="gap: 20px;">
+                        <div><h3 style="color:#2c3e50;">双陪保障标准</h3><ul class="rule-list"><li>Top级别 – 击杀6个 / 搬离40% / 保底400万</li><li>巅峰Top级别 – 击杀8个 / 搬离45% / 保底600万</li><li>战神级别 – 击杀10个 / 搬离50% / 保底800万</li></ul></div>
+                        <div><h3 style="color:#2c3e50;">搬离率计算示例</h3><p>按时间计算，例如搬离率40% = 一小时需要有24分钟成功搬离。<br>双陪搬离失败&lt;3局且带出物资&gt;1000万，不接受技术售后（特殊条款）。<br><span class="orange-link">监狱地图搬离率≥25%时，不接受技术投诉。</span></p></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="convoy">
+            <div class="container">
+                <h2 class="section-title">护航套餐 · 高额保底</h2>
+                <div class="grid-2" style="margin-bottom: 24px;">
+                    <div class="card"><h3>通关小奖章</h3><p class="highlight" style="font-size: 2rem; margin: 12px 0;">158<span style="font-size: 1rem;">R</span></p><p>保底资产 <strong>788w</strong><br>每日首次下单 <strong>+100w 保底</strong><br>适合稳定上分冲资产</p></div>
+                    <div class="card"><h3>蓝钻护航</h3><p class="highlight" style="font-size: 2rem; margin: 12px 0;">198<span style="font-size: 1rem;">R</span></p><p>保底资产 <strong>828w</strong><br>每日首次下单 <strong>+200w 保底</strong><br>蓝钻专享物资保障</p></div>
+                    <div class="card"><h3>巅峰护航 (378R)</h3><p class="highlight" style="font-size: 1.8rem;">378R</p><p>保底 <strong>1888w</strong> + 首次下单额外 <strong>+200w</strong><br>总保底可至2088w</p></div>
+                    <div class="card"><h3>至尊护航 (588R)</h3><p class="highlight" style="font-size: 1.8rem;">588R</p><p>保底 <strong>2988w</strong> + 首次下单额外 <strong>+300w</strong><br>明星级战术指挥</p></div>
+                    <div class="card"><h3>蓝钻高阶 (598R)</h3><p class="highlight" style="font-size: 1.8rem;">598R</p><p>保底 <strong>2788w</strong> + 每日首单 <strong>+300w</strong><br>终极搬离体验</p></div>
+                    <div class="card"><h3>进阶宝 (趣味模式)</h3><p>内容与护航套餐一致，<span class="highlight">单价上浮30%</span>，保留手游趣味玩法，同样享受物资保底。<br>适合娱乐+技术混合需求的老板。</p></div>
+                </div>
+                <div class="badge" style="text-align: center;">每日首次下单额外增加保底仅限当日第一单，护航开始后生效。所有保底为团队承诺，未达标按售后服务处理。</div>
+            </div>
+        </section>
+
+        <section id="rules">
+            <div class="container">
+                <h2 class="section-title">计费规则 & 售后保障</h2>
+                <div class="grid-2">
+                    <div class="card"><h3>精准计费说明</h3><ul class="rule-list"><li>以第一局游戏开局时间为计费起点</li><li>超15分钟按0.5小时计算，超45分钟按1小时计算</li><li>陪玩等待时长超过10分钟 → 开始正常计费</li><li>包钥匙卡：+30元/小时；包6套装备：+15元/套</li><li>1陪2模式单价在原等级基础上 +20元/小时</li></ul></div>
+                    <div class="card"><h3>技术售后条件</h3><ul class="rule-list"><li>双陪任一项未达标（击杀/搬离率/保底物资）即可申请技术售后</li><li>服务投诉请在12小时内提出，技术问题24小时内反馈</li><li>严禁乱下联杀陪玩，核实举报奖励500元</li><li>娱乐女单/单陪/1陪2不承诺售后（不包藏、不保击杀）</li></ul></div>
+                    <div class="card"><h3>特殊不售后情况</h3><ul class="rule-list"><li>监狱地图搬离率≥25%时，不接受技术投诉</li><li>老板要求猛攻打法/暗做任务/特殊玩法 ➔ 无售后</li><li>单陪搬离失败≤3局且带出物资>800万，不接受售后</li><li>双陪搬离失败&lt;3局且带出物资>1000万，不接受售后</li></ul></div>
+                    <div class="card"><h3>黑屋局不计入考核</h3><ul class="rule-list"><li>需陪玩提供截图证明：对局被踢 / 举报成功封号邮件</li><li>敌方战绩异常（未满30级 / KD异常 / 低段位高击杀等）</li><li>黑屋局完整标准：对局结束举报成功被封邮件，或战绩明显异常</li><li>订单未完成前有效，结束后无效</li></ul></div>
+                </div>
+                <div class="card" style="margin-top: 28px; background: #f9f9fc;"><div class="flex-between" style="align-items: center;"><div><strong>每小时双陪技术标准再强调</strong><br>Top: 6杀+40%搬离率+400w；巅峰Top: 8杀+45%+600w；战神:10杀+50%+800w</div><div class="badge" style="margin:0;">搬离成功时间占比计算举例：40%=24分钟成功搬离/小时</div></div></div>
+            </div>
+        </section>
+
+        <section id="about">
+            <div class="container">
+                <h2 class="section-title">关于 LFY CLUB</h2>
+                <div class="grid-2">
+                    <div class="card"><h3>三角洲顶级竞技圈层</h3><p>LFY CLUB 汇聚明星战神、职业级选手，拥有严谨的分级体系，从娱乐女陪到明星职业战神，每一级别均有明确的击杀/搬离/保底指标。我们坚持「技术未达标即售后」的契约精神，重新定义高端陪玩护航标准。</p><p style="margin-top: 12px;">服务范围：《三角洲行动》全模式 | 护航 | 排位冲分 | 物资搬离 | 特殊任务</p></div>
+                    <div class="card"><h3>服务流程与投诉</h3><ul class="rule-list"><li>下单后匹配相应等级陪玩，开局即开始计费（首局开局时间）</li><li>技术未达标请保留对局数据截图，24小时内联系客服复核</li><li>陪玩提供黑屋/外挂对局证明，该局不计考核</li><li>最终解释权归 LFY CLUB 所有</li></ul><div class="badge" style="margin-top: 12px;">24h客服响应 | 举报奖励500元（恶意下单/乱下联杀陪玩）</div></div>
+                </div>
+                <div class="card" style="margin-top: 24px; background: #f9f9fc; text-align: center;"><p style="font-size: 0.85rem;">温馨提示：游戏陪玩仅为提升体验和物资效率，最终结果受游戏版本、服务器状态及个人操作影响。俱乐部承诺严格履行所述技术标准，未尽事宜以客服沟通为准。<br>2025 LFY CLUB — 超性价比电竞服务平台 ｜ 最终解释权归属 LFY CLUB</p></div>
+            </div>
+        </section>
+    </main>
+    <footer><div class="container"><p> 专业陪玩俱乐部 | 合作咨询：LFY官方客服</p><p style="margin-top: 12px;">本页面所有服务内容以LFY CLUB最新公示为准 | 本作品仅作为俱乐部品牌网页展示</p><p style="margin-top: 12px;"> 本页面由@艾斯比喵制作，如有雷同纯属巧合，本页面为非商业性质，不涉及任何盈利行为</p></div></footer>
 </div>
 
 <script>
@@ -316,7 +600,7 @@
         const lettersBox = document.getElementById('lettersBox');
         const phase2 = document.getElementById('phase2');
         const radialText = document.getElementById('radialText');
-        const contentPage = document.getElementById('contentPage');
+        const clubContent = document.getElementById('clubContent');
         
         function buildLetters() {
             lettersBox.innerHTML = '';
@@ -333,7 +617,7 @@
         }
         const letters = buildLetters();
         
-        // 第一阶段光影
+       
         lightText.classList.add('scan-lr');
         lightBar.classList.add('sync-lr');
         
@@ -381,15 +665,14 @@
                                 radialText.classList.add('radial-pulse');
                                 
                                 radialText.addEventListener('animationend', function onRadialEnd() {
-                                    // 径向脉冲完成后，让 phase2 滑出屏幕
                                     phase2.classList.add('slide-out');
-                                    // 同时显示新内容页面
                                     setTimeout(() => {
-                                        contentPage.classList.add('show');
-                                        // 可选：完全隐藏 phase2 避免交互
+                                        clubContent.classList.add('show');
+                                        document.body.style.overflow = 'auto';
                                         setTimeout(() => {
                                             phase2.style.display = 'none';
-                                        }, 800);
+                                            phase1.style.display = 'none';
+                                        }, 500);
                                     }, 200);
                                 }, { once: true });
                             }, totalDur);
