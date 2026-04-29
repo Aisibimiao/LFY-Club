@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>开机动画 | 完整光影 + 金色径向脉冲 + 下滑至全屏内容</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0c12;
+            overflow-x: hidden;
+        }
+
+        /* 第一阶段全屏容器 */
+        .phase1 {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0c12;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.5s ease, visibility 0.5s;
+        }
+
+        /* 文字容器 */
+        .text-wrapper {
+            position: relative;
+            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+            font-weight: 800;
+            font-size: clamp(2.5rem, 10vw, 5.5rem);
+            letter-spacing: 0.05em;
+            line-height: 1.2;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        /* 光影层（唯一显示文字的地方） */
+        .light-text {
+            position: relative;
+            display: inline-block;
+            background: linear-gradient(135deg, #FFB347, #FF6B6B, #4ECDC4, #FFD166, #C77DFF, #FF6B6B);
+            background-size: 400% 100%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            clip-path: circle(0% at 0% 50%);
+        }
+
+        /* 渐变流动 */
+        .gradient-flow {
+            animation: gradientMove 3s ease infinite alternate;
+        }
+        @keyframes gradientMove {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 200% 0%; }
+        }
+
+        /* 水平扫描动画（半径90px） */
+        .scan-lr {
+            animation: scanLeftRight 3.2s ease-in-out forwards;
+        }
+        @keyframes scanLeftRight {
+            0% { clip-path: circle(0% at -5% 50%); }
+            10% { clip-path: circle(90px at 0% 50%); }
+            100% { clip-path: circle(90px at 105% 50%); }
+        }
+        .scan-rl {
+            animation: scanRightLeft 1s ease-in-out forwards;
+        }
+        @keyframes scanRightLeft {
+            0% { clip-path: circle(90px at 105% 50%); }
+            100% { clip-path: circle(90px at -5% 50%); }
+        }
+
+        /* 全显 */
+        .light-text.full {
+            clip-path: none !important;
+        }
+
+        /* 辅助光条 */
+        .light-bar {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 40%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,240,200,0.4), rgba(255,210,150,0.7), rgba(255,240,200,0.4), transparent);
+            transform: skewX(-18deg);
+            filter: blur(10px);
+            pointer-events: none;
+            mix-blend-mode: overlay;
+            z-index: 2;
+        }
+        .light-bar.sync-lr {
+            animation: barLR 3.2s ease-in-out forwards;
+        }
+        .light-bar.sync-rl {
+            animation: barRL 1s ease-in-out forwards;
+        }
+        @keyframes barLR {
+            0% { left: -100%; opacity: 0; }
+            20% { opacity: 0.8; }
+            100% { left: 120%; opacity: 0; }
+        }
+        @keyframes barRL {
+            0% { left: 120%; opacity: 0; }
+            20% { opacity: 0.8; }
+            100% { left: -100%; opacity: 0; }
+        }
+
+        /* 字母拆分容器（用于提取动画） */
+        .letters-box {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0;
+        }
+        .letter {
+            display: inline-block;
+            transition: all 0.45s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            color: #fff;
+        }
+        .letter.disappear {
+            opacity: 0;
+            transform: translateY(-35px) scale(0.6);
+            filter: blur(4px);
+        }
+        .letter.keep-pulse {
+            animation: keepGlow 0.6s ease-in-out;
+        }
+        @keyframes keepGlow {
+            0% { text-shadow: 0 0 0 transparent; transform: scale(1); }
+            50% { text-shadow: 0 0 20px rgba(255,200,100,0.9); transform: scale(1.12); }
+            100% { text-shadow: 0 0 0 transparent; transform: scale(1); }
+        }
+
+        /* 第二阶段容器（开屏动画） */
+        .phase2 {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0c12;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, transform 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+        .radial-text {
+            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+            font-weight: 800;
+            font-size: clamp(2.5rem, 10vw, 5.5rem);
+            background: linear-gradient(135deg, #FBBF24, #F59E0B, #D97706);
+            background-size: 300% 300%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            clip-path: circle(0% at center);
+        }
+        .radial-pulse {
+            animation: radialExpand 2.2s cubic-bezier(0.2, 0.9, 0.4, 1.2) forwards;
+        }
+        @keyframes radialExpand {
+            0% { clip-path: circle(0% at center); background-position: 0% 0%; filter: drop-shadow(0 0 0 #FBBF24); }
+            40% { clip-path: circle(45% at center); background-position: 50% 50%; filter: drop-shadow(0 0 12px rgba(251,191,36,0.6)); }
+            80% { clip-path: circle(100% at center); background-position: 100% 100%; filter: drop-shadow(0 0 8px rgba(245,158,11,0.8)); }
+            100% { clip-path: circle(150% at center); background-position: 100% 100%; filter: drop-shadow(0 0 0 transparent); }
+        }
+        .radial-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0%;
+            height: 0%;
+            background: radial-gradient(circle, rgba(251,191,36,0.5), rgba(245,158,11,0.2), transparent);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: -1;
+            animation: glowExpand 2.2s ease-out forwards;
+        }
+        @keyframes glowExpand {
+            0% { width: 0%; height: 0%; opacity: 0.8; }
+            100% { width: 280%; height: 280%; opacity: 0; }
+        }
+
+        /* 下滑移出屏幕 */
+        .phase2.slide-out {
+            transform: translateY(100vh);
+            opacity: 0;
+        }
+
+        /* 新内容全屏页面（初始隐藏） */
+        .content-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(145deg, #1a1f2e, #0f111a);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 300;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.6s ease;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+        .content-page.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .content-page h1 {
+            font-size: 3rem;
+            background: linear-gradient(135deg, #FBBF24, #FF6B6B);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 1rem;
+        }
+        .content-page p {
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+        .card-grid {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        .card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 1.5rem;
+            width: 200px;
+            transition: 0.2s;
+        }
+        .card h3 { margin-bottom: 0.5rem; color: #FBBF24; }
+        .info {
+            position: absolute;
+            bottom: 20px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.3);
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 第一阶段 -->
+<div class="phase1" id="phase1">
+    <div class="text-wrapper">
+        <div class="light-text gradient-flow" id="lightText">Lead Focus Yield club</div>
+        <div class="letters-box" id="lettersBox"></div>
+    </div>
+    <div class="light-bar" id="lightBar"></div>
+    <div class="info">✨ 水平光影 · 暖色流动 · 丝滑提取 LFY club ✨</div>
+</div>
+
+<!-- 第二阶段（开屏动画） -->
+<div class="phase2" id="phase2">
+    <div class="radial-text" id="radialText">LFY club</div>
+    <div class="radial-glow" id="radialGlow"></div>
+</div>
+
+<!-- 新内容全屏页面（下滑后显示） -->
+<div class="content-page" id="contentPage">
+    <h1>✨ 欢迎来到 LFY Club ✨</h1>
+    <p>这里是您专属的空间，开屏动画已完美结束。您可以在此放置任何内容。</p>
+    <div class="card-grid">
+        <div class="card"><h3>🌟 特色一</h3><p>光影流动</p></div>
+        <div class="card"><h3>🎨 特色二</h3><p>丝滑提取</p></div>
+        <div class="card"><h3>⚡ 特色三</h3><p>径向脉冲</p></div>
+    </div>
+    <div class="info">✨ 下拉完成 · 内容展示区 ✨</div>
+</div>
+
+<script>
+    (function() {
+        const fullStr = "Lead Focus Yield club";
+        const keepIdx = [0, 5, 11, 16, 17, 18, 19, 20];
+        
+        const phase1 = document.getElementById('phase1');
+        const lightText = document.getElementById('lightText');
+        const lightBar = document.getElementById('lightBar');
+        const lettersBox = document.getElementById('lettersBox');
+        const phase2 = document.getElementById('phase2');
+        const radialText = document.getElementById('radialText');
+        const contentPage = document.getElementById('contentPage');
+        
+        function buildLetters() {
+            lettersBox.innerHTML = '';
+            for (let i = 0; i < fullStr.length; i++) {
+                const ch = fullStr[i];
+                const span = document.createElement('span');
+                span.className = 'letter';
+                span.textContent = ch;
+                if (ch === ' ') span.style.margin = '0 0.2em';
+                span.setAttribute('data-idx', i);
+                lettersBox.appendChild(span);
+            }
+            return Array.from(lettersBox.children);
+        }
+        const letters = buildLetters();
+        
+        // 第一阶段光影
+        lightText.classList.add('scan-lr');
+        lightBar.classList.add('sync-lr');
+        
+        lightText.addEventListener('animationend', function onFirstEnd(e) {
+            if (e.animationName === 'scanLeftRight') {
+                lightText.classList.remove('scan-lr');
+                lightBar.classList.remove('sync-lr');
+                lightText.classList.add('scan-rl');
+                lightBar.classList.add('sync-rl');
+                
+                lightText.addEventListener('animationend', function onSecondEnd(e2) {
+                    if (e2.animationName === 'scanRightLeft') {
+                        lightText.classList.remove('scan-rl');
+                        lightBar.classList.remove('sync-rl');
+                        lightText.classList.add('full');
+                        lightBar.style.display = 'none';
+                        
+                        lettersBox.style.opacity = '1';
+                        setTimeout(() => {
+                            for (let i = 0; i < letters.length; i++) {
+                                const idx = parseInt(letters[i].getAttribute('data-idx'));
+                                if (keepIdx.includes(idx)) {
+                                    letters[i].classList.add('keep-pulse');
+                                }
+                            }
+                            let delay = 0;
+                            const step = 0.045;
+                            for (let i = 0; i < letters.length; i++) {
+                                const idx = parseInt(letters[i].getAttribute('data-idx'));
+                                if (!keepIdx.includes(idx)) {
+                                    setTimeout(() => {
+                                        letters[i].classList.add('disappear');
+                                    }, delay * 1000);
+                                    delay += step;
+                                }
+                            }
+                            const totalDur = delay * 1000 + 600;
+                            setTimeout(() => {
+                                phase1.style.opacity = '0';
+                                setTimeout(() => { phase1.style.visibility = 'hidden'; }, 400);
+                                phase2.style.visibility = 'visible';
+                                phase2.style.opacity = '1';
+                                
+                                void radialText.offsetHeight;
+                                radialText.classList.add('radial-pulse');
+                                
+                                radialText.addEventListener('animationend', function onRadialEnd() {
+                                    // 径向脉冲完成后，让 phase2 滑出屏幕
+                                    phase2.classList.add('slide-out');
+                                    // 同时显示新内容页面
+                                    setTimeout(() => {
+                                        contentPage.classList.add('show');
+                                        // 可选：完全隐藏 phase2 避免交互
+                                        setTimeout(() => {
+                                            phase2.style.display = 'none';
+                                        }, 800);
+                                    }, 200);
+                                }, { once: true });
+                            }, totalDur);
+                        }, 500);
+                    }
+                }, { once: true });
+            }
+        }, { once: true });
+    })();
+</script>
+</body>
+</html>
